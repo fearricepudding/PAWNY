@@ -1,5 +1,6 @@
 #include "pawny.h"
 #include "../candy/src/candy.h"
+#include "server.h"
 
 #include <linux/can.h>
 #include <iostream>
@@ -15,12 +16,16 @@ Pawny::Pawny(){
 void Pawny::init(){
     std::cout << "[*] Starting ECUPWN PAWNY" << std::endl;
     this->candy->setup();
-    if(this->candy->isConnected()){
-	boost::thread t_canListener(&Pawny::listen, this);
-        boost::thread t_canBroadcaster(&Pawny::broadcast, this);
-    	t_canListener.join();
-        t_canBroadcaster.join();
+    
+    if(!this->candy->isConnected()){
+        std::cout << "[*] CAN error, exiting" << std::endl;
+        exit(1);
     };
+
+    boost::thread t_canListener(&Pawny::listen, this);
+    boost::thread t_canBroadcaster(&Pawny::broadcast, this);
+    t_canListener.join();
+    t_canBroadcaster.join();
 };
 
 void Pawny::listen(){
@@ -37,10 +42,12 @@ void Pawny::listen(){
 };
 
 void Pawny::broadcast(){
+    Server *server = new Server();
+    server->waitForConnection();
     while(1){
         can_frame frame;
 
-	this->_m.lock();
+        this->_m.lock();
         if(this->_frames.size() <= 0){
 	    this->_m.unlock();
             continue;
@@ -48,5 +55,7 @@ void Pawny::broadcast(){
         frame = (can_frame) this->_frames.front();
         this->_frames.pop();
         this->_m.unlock();
+
+        server->sendFrame(frame);
     };
 };

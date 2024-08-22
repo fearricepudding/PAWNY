@@ -8,8 +8,8 @@ add_executable(PAWNY
     src/main.cpp
     src/pawny.h
     src/pawny.cpp
-    src/worker.cpp
-    src/worker.h
+    src/server.cpp
+    src/server.h
 )
 
 find_package(Boost COMPONENTS thread system REQUIRED)
