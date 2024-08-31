@@ -10,11 +10,12 @@ class Pawny{
 public:
     Pawny();
     void init();
+
+    void listen();
+    void broadcast();
+
 private: 
     Candy *candy;
     std::queue<can_frame> _frames;
     std::mutex _m;
-
-    void listen();
-    void broadcast();
 };

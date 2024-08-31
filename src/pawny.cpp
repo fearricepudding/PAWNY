@@ -8,6 +8,7 @@
 #include <mutex>
 #include <thread>
 #include <boost/thread.hpp>
+#include <stdlib.h>
 
 Pawny::Pawny(){
     this->candy = new Candy();
@@ -21,11 +22,6 @@ void Pawny::init(){
         std::cout << "[*] CAN error, exiting" << std::endl;
         exit(1);
     };
-
-    boost::thread t_canListener(&Pawny::listen, this);
-    boost::thread t_canBroadcaster(&Pawny::broadcast, this);
-    t_canListener.join();
-    t_canBroadcaster.join();
 };
 
 void Pawny::listen(){
@@ -36,7 +32,9 @@ void Pawny::listen(){
     while(1){
         can_frame frame = this->candy->recieve();
         this->_m.lock();
+	std::cout << "[%] Pushing frame" << std::endl;
         this->_frames.push(frame);
+	std::cout << "[%] Frame queue: " << this->_frames.size() << std::endl;
         this->_m.unlock();
     };
 };
@@ -44,9 +42,9 @@ void Pawny::listen(){
 void Pawny::broadcast(){
     Server *server = new Server();
     server->waitForConnection();
+    std::cout << "[#] Connected!" <<std::endl;
     while(1){
         can_frame frame;
-
         this->_m.lock();
         if(this->_frames.size() <= 0){
 	    this->_m.unlock();
@@ -56,6 +54,8 @@ void Pawny::broadcast(){
         this->_frames.pop();
         this->_m.unlock();
 
+	std::cout << "[#] Got frame, sending" << std::endl;
         server->sendFrame(frame);
+	std::cout << "[#] Sent" << std::endl;
     };
 };
