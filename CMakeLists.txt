@@ -12,6 +12,6 @@ add_executable(PAWNY
     src/server.h
 )
 
-find_package(Boost COMPONENTS thread system REQUIRED)
+find_package(Boost COMPONENTS thread system program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 target_link_libraries(PAWNY PRIVATE candy ${Boost_LIBRARIES})

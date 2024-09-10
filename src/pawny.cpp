@@ -11,6 +11,12 @@
 #include <stdlib.h>
 
 Pawny::Pawny(){
+    this->debug = false;
+    this->candy = new Candy();
+}
+
+Pawny::Pawny(bool debug) {
+    this->debug = debug;
     this->candy = new Candy();
 }
 

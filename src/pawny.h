@@ -9,6 +9,7 @@
 class Pawny{
 public:
     Pawny();
+    Pawny(bool);
     void init();
 
     void listen();
@@ -18,4 +19,5 @@ private:
     Candy *candy;
     std::queue<can_frame> _frames;
     std::mutex _m;
+    bool debug;
 };
