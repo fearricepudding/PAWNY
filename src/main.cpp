@@ -41,8 +41,10 @@ int main(int argc, char** argv){
     Pawny *instance = new Pawny(debug);
     instance->init();
 
-    boost::thread t_canListener(&Pawny::listen, instance);
-    boost::thread t_canBroadcaster(&Pawny::broadcast, instance);
+    FrameQueue queue;
+
+    boost::thread t_canListener(&Pawny::listen, instance, &queue);
+    boost::thread t_canBroadcaster(&Pawny::broadcast, instance, &queue);
     t_canListener.join();
     t_canBroadcaster.join();
 }

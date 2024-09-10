@@ -6,18 +6,18 @@
 #include <queue>
 #include <mutex>
 
+#include "FrameQueue.h"
+
 class Pawny{
 public:
     Pawny();
     Pawny(bool);
     void init();
 
-    void listen();
-    void broadcast();
+     void listen(FrameQueue *);
+     void broadcast(FrameQueue *);
 
 private: 
     Candy *candy;
-    std::queue<can_frame> _frames;
-    std::mutex _m;
     bool debug;
 };

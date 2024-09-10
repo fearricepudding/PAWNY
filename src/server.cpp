@@ -90,8 +90,10 @@ int Server::setup() {
     return 0;
 };
 
-int Server::waitForConnection() {
+void Server::waitForConnection() {
+    std::cout << "LOOKING" << std::endl;
     while(1){
+        std::cout << "WAITING LOOP" << std::endl;
         sin_size = sizeof their_addr;
         new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
         if (new_fd == -1) {
@@ -100,20 +102,19 @@ int Server::waitForConnection() {
         };
 
         inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
-        if(fork()){
-            close(new_fd);
-            continue;
-        };
 
         std::cout << "[*] Connected" << std::endl;
-
         close(sockfd);
-        return 0;
+        break;
     };
+    std::cout << "RETURNING" << std::endl;
+    return;
 };
 
 int Server::sendFrame(can_frame packet) {
     if (send(new_fd, &packet, sizeof packet, 0) == -1) {
+        std::cout << "Failed to send frame, client disconnect" << std::endl;
+        std::cout << errno << std::endl;
         return 1;
     };
     return 0;

@@ -22,7 +22,7 @@ public:
     Server();
     ~Server();
     int sendFrame(can_frame);
-    int waitForConnection();
+    void waitForConnection();
     void shutdown();
 
 private:
