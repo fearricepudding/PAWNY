@@ -14,18 +14,18 @@
 #include <signal.h>
 #include <linux/can.h>
 
-#define PORT "8047"
 #define BACKLOG 10
 
 class Server{
 public: 
-    Server();
+    Server(int);
     ~Server();
     int sendFrame(can_frame);
     void waitForConnection();
     void shutdown();
 
 private:
+    const char* _port;
     int sockfd, new_fd;
     struct addrinfo hints, *servinfo, *p;
     struct sockaddr_storage their_addr;

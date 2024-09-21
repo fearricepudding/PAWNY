@@ -15,12 +15,15 @@
 #include <signal.h>
 #include <linux/can.h>
 
-Server::Server() {
+Server::Server(int port) {
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
-    
+
+    std::string s = std::to_string(port);
+    this->_port = s.c_str();  
+
     this->setup();
 };
 
@@ -42,7 +45,7 @@ void *get_in_addr(struct sockaddr *sa) {
 }
 
 int Server::setup() {
-    if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
+    if ((rv = getaddrinfo(NULL, this->_port, &hints, &servinfo)) != 0) {
         std::cout << "[*] getaddrinfo error: " << gai_strerror(rv) << std::endl;
         return 1;
     };
@@ -87,13 +90,12 @@ int Server::setup() {
         exit(1);
     };
 
+    std::cout << "[*] Server listening on port " << this->_port << std::endl;
     return 0;
 };
 
 void Server::waitForConnection() {
-    std::cout << "LOOKING" << std::endl;
     while(1){
-        std::cout << "WAITING LOOP" << std::endl;
         sin_size = sizeof their_addr;
         new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
         if (new_fd == -1) {
@@ -107,7 +109,6 @@ void Server::waitForConnection() {
         close(sockfd);
         break;
     };
-    std::cout << "RETURNING" << std::endl;
     return;
 };
 

@@ -12,14 +12,9 @@
 #include <boost/chrono.hpp>
 #include <boost/thread/thread.hpp> 
 
-Pawny::Pawny(){
-    this->debug = false;
-    this->candy = new Candy();
-}
-
-Pawny::Pawny(bool debug) {
+Pawny::Pawny(bool debug, int bitrate, int port) {
     this->debug = debug;
-    this->candy = new Candy(debug);
+    this->candy = new Candy(debug, bitrate);
 }
 
 void Pawny::init(){
@@ -56,8 +51,8 @@ void Pawny::listen(FrameQueue *queue){
     };
 };
 
-void Pawny::broadcast(FrameQueue *queue){
-    Server *server = new Server();
+void Pawny::broadcast(FrameQueue *queue, int port){
+    Server *server = new Server(port);
     server->waitForConnection();
     std::cout << "[#] Got connection, sending frames loop" <<std::endl;
     while(1){

@@ -10,12 +10,11 @@
 
 class Pawny{
 public:
-    Pawny();
-    Pawny(bool);
+    Pawny(bool, int, int);
     void init();
 
      void listen(FrameQueue *);
-     void broadcast(FrameQueue *);
+     void broadcast(FrameQueue *, int);
 
 private: 
     Candy *candy;
