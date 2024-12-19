@@ -20,7 +20,7 @@ class Server{
 public: 
     Server(int);
     ~Server();
-    int sendFrame(can_frame);
+    int sendFrame(canfd_frame);
     void waitForConnection();
     void shutdown();
 

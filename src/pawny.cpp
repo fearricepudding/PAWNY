@@ -35,7 +35,7 @@ void Pawny::listen(FrameQueue *queue){
     int debugFrames = 0;
 
     while(1){
-        can_frame frame = this->candy->recieve();
+        canfd_frame frame = this->candy->recieve();
         queue->_m.lock();
         std::cout << "[%] Pushing frame" << std::endl;
         queue->_frames.push(frame);
@@ -56,13 +56,13 @@ void Pawny::broadcast(FrameQueue *queue, int port){
     server->waitForConnection();
     std::cout << "[#] Got connection, sending frames loop" <<std::endl;
     while(1){
-        can_frame frame;
+        canfd_frame frame;
         queue->_m.lock();
         if(queue->_frames.size() <= 0){
             queue->_m.unlock();
             continue;
         };
-        frame = (can_frame) queue->_frames.front();
+        frame = (canfd_frame) queue->_frames.front();
         queue->_frames.pop();
         queue->_m.unlock();
 

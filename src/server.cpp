@@ -112,7 +112,7 @@ void Server::waitForConnection() {
     return;
 };
 
-int Server::sendFrame(can_frame packet) {
+int Server::sendFrame(canfd_frame packet) {
     if (send(new_fd, &packet, sizeof packet, 0) == -1) {
         std::cout << "Failed to send frame, client disconnect" << std::endl;
         std::cout << errno << std::endl;

@@ -7,6 +7,6 @@
 
 class FrameQueue {
 public:
-    std::queue<can_frame> _frames;
+    std::queue<canfd_frame> _frames;
     std::mutex _m;
 };
