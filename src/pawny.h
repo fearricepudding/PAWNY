@@ -10,7 +10,7 @@
 
 class Pawny{
 public:
-    Pawny(bool, int, int);
+    Pawny(bool, int, int, bool, int);
     void init();
 
      void listen(FrameQueue *);

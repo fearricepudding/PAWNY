@@ -18,6 +18,8 @@ int main(int argc, char** argv){
             ("help", "produce help message")
             ("debug", "start in debug mode")
             ("bitrate", boost::program_options::value<int>(), "set the CAN bitrate (default 10400)")
+            ("CANFD", "Use can FD")
+            ("datarate", boost::program_options::value<int>(), "set the data rate (default disabled)")
             ("port", boost::program_options::value<int>(), "set the listen port (default 8047)");
 
 
@@ -49,7 +51,16 @@ int main(int argc, char** argv){
         debug = true;
     };
 
-    Pawny *instance = new Pawny(debug, bitrate, port);
+    bool canfd = false;
+    int datarate = 0;
+    if (vm.count("CANFD")) {
+        canfd = true;
+        if (vm.count("datarate")) {
+            datarate = vm["datarate"].as<int>();
+        };
+    };
+
+    Pawny *instance = new Pawny(debug, bitrate, port, canfd, datarate);
     instance->init();
 
     FrameQueue queue;

@@ -12,10 +12,14 @@
 #include <boost/chrono.hpp>
 #include <boost/thread/thread.hpp> 
 
-Pawny::Pawny(bool debug, int bitrate, int port) {
+Pawny::Pawny(bool debug, int bitrate, int port, bool fd, int datarate) {
     this->debug = debug;
-    this->candy = new Candy(debug, bitrate);
-}
+    if (fd) {
+        this->candy = new Candy(debug, bitrate, datarate);
+    } else {
+        this->candy = new Candy(debug, bitrate);
+    };
+};
 
 void Pawny::init(){
     std::cout << "[*] Starting ECUPWN PAWNY" << std::endl;
