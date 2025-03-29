@@ -20,8 +20,8 @@ int main(int argc, char** argv){
             ("bitrate", boost::program_options::value<int>(), "set the CAN bitrate (default 10400)")
             ("CANFD", "Use can FD")
             ("datarate", boost::program_options::value<int>(), "set the data rate (default disabled)")
-            ("port", boost::program_options::value<int>(), "set the listen port (default 8047)");
-
+            ("port", boost::program_options::value<int>(), "set the listen port (default 8047)")
+            ("out", boost::program_options::value<std::string>(), "log and store can frames to location");
 
         boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
         boost::program_options::notify(vm);
@@ -60,7 +60,16 @@ int main(int argc, char** argv){
         };
     };
 
-    Pawny *instance = new Pawny(debug, bitrate, port, canfd, datarate);
+    bool store = false;
+    std::string storePath = "";
+    if (vm.count("out")) {
+        store = true;
+        storePath = vm["out"].as<std::string>();
+    };
+
+    std::cout << store << " = "  << storePath << std::endl;
+
+    Pawny *instance = new Pawny(debug, bitrate, port, canfd, datarate, store, storePath);
     instance->init();
 
     FrameQueue queue;

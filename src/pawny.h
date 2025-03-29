@@ -7,10 +7,11 @@
 #include <mutex>
 
 #include "FrameQueue.h"
+#include "File.h"
 
 class Pawny{
 public:
-    Pawny(bool, int, int, bool, int);
+    Pawny(bool, int, int, bool, int, bool, std::string);
     void init();
 
      void listen(FrameQueue *);
@@ -19,4 +20,7 @@ public:
 private: 
     Candy *candy;
     bool debug;
+    bool store;
+    std::string storePath;
+    File* logger;
 };

@@ -1,6 +1,7 @@
 #include "pawny.h"
 #include "../candy/src/candy.h"
 #include "server.h"
+#include "File.h"
 
 #include <linux/can.h>
 #include <iostream>
@@ -12,8 +13,14 @@
 #include <boost/chrono.hpp>
 #include <boost/thread/thread.hpp> 
 
-Pawny::Pawny(bool debug, int bitrate, int port, bool fd, int datarate) {
+Pawny::Pawny(bool debug, int bitrate, int port, bool fd, int datarate, bool store, std::string storePath) {
     this->debug = debug;
+    this->store = store;
+    if (store) {
+        this->storePath = storePath;
+        this->logger = new File(storePath);
+    };
+
     if (fd) {
         this->candy = new Candy(debug, bitrate, datarate);
     } else {
@@ -45,12 +52,17 @@ void Pawny::listen(FrameQueue *queue){
         queue->_frames.push(frame);
         std::cout << "[%] Frame queue: " << queue->_frames.size() << std::endl;
         queue->_m.unlock();
+        
+        if (this->store) {
+            this->logger->write(frame);
+        };
+
         if (this->debug) {
             debugFrames++;
-            if (debugFrames >= 10) {
+            if (debugFrames >= 100) {
                 return;
             };
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(2000));
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(20));
         };
     };
 };

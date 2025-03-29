@@ -6,12 +6,11 @@ add_subdirectory(candy)
 
 add_executable(PAWNY
     src/main.cpp
-    src/pawny.h
     src/pawny.cpp
     src/server.cpp
-    src/server.h
+    src/File.cpp
 )
 
-find_package(Boost COMPONENTS thread system chrono program_options REQUIRED)
+find_package(Boost COMPONENTS thread filesystem system chrono program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 target_link_libraries(PAWNY PRIVATE candy ${Boost_LIBRARIES})
