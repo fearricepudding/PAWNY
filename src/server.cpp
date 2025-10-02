@@ -23,6 +23,7 @@ Server::Server(int port) {
 
     std::string s = std::to_string(port);
     this->_port = s.c_str();  
+    this->_connected = false;
 
     this->setup();
 };
@@ -106,11 +107,16 @@ void Server::waitForConnection() {
         inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
 
         std::cout << "[*] Connected" << std::endl;
+        this->_connected = true;
         close(sockfd);
         break;
     };
     return;
 };
+
+bool Server::isConnected() {
+    return this->_connected;
+}
 
 int Server::sendFrame(canfd_frame packet) {
     if (send(new_fd, &packet, sizeof packet, 0) == -1) {

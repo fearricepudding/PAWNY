@@ -21,6 +21,7 @@ int main(int argc, char** argv){
             ("CANFD", "Use can FD")
             ("datarate", boost::program_options::value<int>(), "set the data rate (default disabled)")
             ("port", boost::program_options::value<int>(), "set the listen port (default 8047)")
+            ("broadcast", "Broadcast the packets over UDP")
             ("out", boost::program_options::value<std::string>(), "log and store can frames to location");
 
         boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -36,48 +37,51 @@ int main(int argc, char** argv){
         return 0;
     };
 
-    int bitrate = 10400;
-    if (vm.count("bitrate")) {
-        bitrate = vm["bitrate"].as<int>(); 
-    };
-
-    int port = 8047;
-    if (vm.count("port")) {
-        port = vm["port"].as<int>();
-    }
-
     bool debug = false;
     if (vm.count("debug")) {
         debug = true;
     };
 
-    bool canfd = false;
-    int datarate = 0;
+    Pawny *i_pawny = new Pawny(debug);
+
+    if (vm.count("bitrate")) {
+        int bitrate = vm["bitrate"].as<int>(); 
+        i_pawny->setBaud(bitrate);
+    };
+
+    if (vm.count("broadcast")) {
+        int port = 8047;
+        if (vm.count("port")) {
+            port = vm["port"].as<int>();
+        }
+        i_pawny->enableBroadcast(port);
+    };
+
     if (vm.count("CANFD")) {
-        canfd = true;
         if (vm.count("datarate")) {
-            datarate = vm["datarate"].as<int>();
+            int datarate = vm["datarate"].as<int>();
+            i_pawny->setDataRate(datarate);
         };
+        i_pawny->enableFD();
     };
 
-    bool store = false;
-    std::string storePath = "";
     if (vm.count("out")) {
-        store = true;
-        storePath = vm["out"].as<std::string>();
+        std::string storePath = vm["out"].as<std::string>();
+        i_pawny->enableLogging(storePath);
     };
+    
+    i_pawny->init();
 
-    std::cout << store << " = "  << storePath << std::endl;
-
-    Pawny *instance = new Pawny(debug, bitrate, port, canfd, datarate, store, storePath);
-    instance->init();
-
+    boost::thread_group threads;
     FrameQueue queue;
 
-    boost::thread t_canListener(&Pawny::listen, instance, &queue);
-    boost::thread t_canBroadcaster(&Pawny::broadcast, instance, &queue, port);
-    t_canListener.join();
-    t_canBroadcaster.join();
+    boost::thread *t_canListener = new boost::thread(&Pawny::listen, i_pawny, &queue);
+    threads.add_thread(t_canListener);
+
+    boost::thread *t_canConsume = new boost::thread(&Pawny::consume, i_pawny, &queue);
+    threads.add_thread(t_canConsume);
+
+    threads.join_all();
 }
 
 

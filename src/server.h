@@ -23,6 +23,7 @@ public:
     int sendFrame(canfd_frame);
     void waitForConnection();
     void shutdown();
+    bool isConnected();
 
 private:
     const char* _port;
@@ -35,5 +36,6 @@ private:
     char s[INET6_ADDRSTRLEN];
     int rv;
 
+    bool _connected;
     int setup();
 };
