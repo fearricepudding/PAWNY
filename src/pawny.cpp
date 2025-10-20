@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <boost/chrono.hpp>
 #include <boost/thread/thread.hpp> 
+#include <ncurses.h>
+#include <stdlib.h>
 
 Pawny::Pawny(bool debug) {
     this->debug = debug;
@@ -40,7 +42,7 @@ void Pawny::disableFD() {
 }
 
 void Pawny::init(){
-    std::cout << "[*] Starting ECUPWN PAWNY" << std::endl;
+    //std::cout << "[*] Starting ECUPWN PAWNY" << std::endl;
 
     if (this->_fd) {
         this->candy = new Candy(this->debug, this->_baud, this->_drate);
@@ -51,7 +53,7 @@ void Pawny::init(){
     this->candy->setup();
     
     if(!this->candy->isConnected()){
-        std::cout << "[*] CAN error, exiting" << std::endl;
+        //std::cout << "[*] CAN error, exiting" << std::endl;
         exit(1);
     };
 
@@ -84,15 +86,11 @@ void Pawny::listen(FrameQueue *queue){
 
     while(1){
         canfd_frame frame = this->candy->recieve();
-        queue->_m.lock();
-        queue->_frames.push(frame);
-        std::cout << "[%] Frame queue: " << queue->_frames.size() << std::endl;
-        queue->_m.unlock();
-        
+        queue->add(frame);
         
         if (this->debug) {
             debugFrames++;
-            if (debugFrames >= 2) {
+            if (debugFrames >= 12) {
                 return;
             };
             boost::this_thread::sleep_for(boost::chrono::milliseconds(20));
@@ -102,15 +100,12 @@ void Pawny::listen(FrameQueue *queue){
 
 void Pawny::consume(FrameQueue *queue){
      while(1){
-        canfd_frame frame;
-        queue->_m.lock();
-        if(queue->_frames.size() <= 0){
-            queue->_m.unlock();
+
+        if (queue->isEmpty()) {
             continue;
-        };
-        frame = (canfd_frame) queue->_frames.front();
-        queue->_frames.pop();
-        queue->_m.unlock();
+        }
+
+        canfd_frame frame = queue->pop();
 
         if (this->broadcast_en && this->server->isConnected()) {
             this->broadcast(frame);
@@ -124,7 +119,7 @@ void Pawny::consume(FrameQueue *queue){
 }
 
 void Pawny::broadcast(canfd_frame frame) {
-    std::cout << "[#] Got connection" << std::endl;
+    //std::cout << "[#] Got connection" << std::endl;
     server->sendFrame(frame);
 };
 

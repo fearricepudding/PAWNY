@@ -1,4 +1,5 @@
 #include "pawny.h"
+#include "Interface.h"
 
 #include <linux/can.h>
 #include <iostream>
@@ -22,6 +23,7 @@ int main(int argc, char** argv){
             ("datarate", boost::program_options::value<int>(), "set the data rate (default disabled)")
             ("port", boost::program_options::value<int>(), "set the listen port (default 8047)")
             ("broadcast", "Broadcast the packets over UDP")
+            ("interactive", "interactive")
             ("out", boost::program_options::value<std::string>(), "log and store can frames to location");
 
         boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -69,17 +71,28 @@ int main(int argc, char** argv){
         std::string storePath = vm["out"].as<std::string>();
         i_pawny->enableLogging(storePath);
     };
+
+    bool interactive = false;
+
+    Interface* interface = new Interface(i_pawny);
+    if (vm.count("interactive")) {
+        interactive = true;
+        interface->setupInteractive();
+    }
     
     i_pawny->init();
 
     boost::thread_group threads;
     FrameQueue queue;
 
-    boost::thread *t_canListener = new boost::thread(&Pawny::listen, i_pawny, &queue);
-    threads.add_thread(t_canListener);
+    threads.add_thread(new boost::thread(&Pawny::listen, i_pawny, &queue));
 
-    boost::thread *t_canConsume = new boost::thread(&Pawny::consume, i_pawny, &queue);
-    threads.add_thread(t_canConsume);
+    //threads.add_thread(new boost::thread(&Pawny::consume, i_pawny, &queue));
+
+    if (interactive) {
+        threads.add_thread(new boost::thread(&Interface::display, interface, &queue));
+        threads.add_thread(new boost::thread(&Interface::input, interface));
+    }
 
     threads.join_all();
 }

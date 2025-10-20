@@ -9,8 +9,11 @@ add_executable(PAWNY
     src/pawny.cpp
     src/server.cpp
     src/File.cpp
+    src/Interface.cpp
+    src/FrameQueue.cpp
 )
 
 find_package(Boost COMPONENTS thread filesystem system chrono program_options REQUIRED)
-include_directories(${Boost_INCLUDE_DIR})
-target_link_libraries(PAWNY PRIVATE candy ${Boost_LIBRARIES})
+find_package(Curses REQUIRED)
+include_directories(${Boost_INCLUDE_DIR} ${CURSES_INCLUDE_DIR})
+target_link_libraries(PAWNY PRIVATE candy ${Boost_LIBRARIES} ${CURSES_LIBRARIES})

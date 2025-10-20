@@ -6,7 +6,12 @@
 
 
 class FrameQueue {
-public:
+public: 
+    void add(canfd_frame);
+    int size();
+    bool isEmpty();
+    canfd_frame pop();
+private:
     std::queue<canfd_frame> _frames;
     std::mutex _m;
 };
