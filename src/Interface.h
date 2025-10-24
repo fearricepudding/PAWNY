@@ -10,7 +10,7 @@
 
 struct State {
     int bufferSize;
-    std::list<std::string> commandHistory;
+    std::queue<std::string> commandHistory;
     std::string command;
 };
 
@@ -25,6 +25,7 @@ public:
 private: 
     Pawny* pawny;
     State state;
+    WINDOW* w_logo;
     WINDOW* w_commandHistory;
     WINDOW* w_stats;
     WINDOW* w_output;
@@ -35,6 +36,7 @@ private:
     void update();
     void setupWindow(WINDOW*, int, int, int, int);
     
+    void renderLogo();
     void renderOutput();
     void renderHistory();
     void renderStats();

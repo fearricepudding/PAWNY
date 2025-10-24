@@ -14,10 +14,19 @@
 
 class Pawny{
 public:
-    bool broadcast_en;
-    bool saveToFile;
 
     Pawny(bool);
+
+    int port;
+    bool broadcast_en;
+    bool saveToFile;
+    bool debug;
+    bool store;
+    int _drate;
+    int _baud;
+    bool _fd;
+    std::string storePath;
+
     void init();
 
      void listen(FrameQueue *);
@@ -36,16 +45,7 @@ public:
      void enableFD();
      void disableFD();
 private: 
-    std::string storePath;
     File* logger;
     Server *server;
-
     Candy *candy;
-    bool debug;
-    bool store;
-    int port;
-
-    int _drate;
-    int _baud;
-    bool _fd;
 };
