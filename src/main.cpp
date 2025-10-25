@@ -45,7 +45,8 @@ int main(int argc, char** argv){
     };
 
     Pawny *i_pawny = new Pawny(debug);
-
+    Interface* interface = new Interface(i_pawny);
+    
     if (vm.count("bitrate")) {
         int bitrate = vm["bitrate"].as<int>(); 
         i_pawny->setBaud(bitrate);
@@ -72,27 +73,16 @@ int main(int argc, char** argv){
         i_pawny->enableLogging(storePath);
     };
 
-    bool interactive = false;
-
-    Interface* interface = new Interface(i_pawny);
-    if (vm.count("interactive")) {
-        interactive = true;
-        interface->setupInteractive();
-    }
-    
+    interface->setupInteractive();
     i_pawny->init();
 
     boost::thread_group threads;
     FrameQueue queue;
 
     threads.add_thread(new boost::thread(&Pawny::listen, i_pawny, &queue));
-
-    //threads.add_thread(new boost::thread(&Pawny::consume, i_pawny, &queue));
-
-    if (interactive) {
-        threads.add_thread(new boost::thread(&Interface::display, interface, &queue));
-        threads.add_thread(new boost::thread(&Interface::input, interface));
-    }
+    threads.add_thread(new boost::thread(&Interface::consume, interface, &queue));
+    threads.add_thread(new boost::thread(&Interface::display, interface, &queue));
+    threads.add_thread(new boost::thread(&Interface::input, interface));
 
     threads.join_all();
 }

@@ -10,8 +10,8 @@
 
 struct State {
     int bufferSize;
-    std::queue<std::string> commandHistory;
     std::string command;
+    std::list<std::string> log;
 };
 
 class Interface {
@@ -19,6 +19,7 @@ public:
     Interface(Pawny*);
     void setupInteractive();
 
+    void consume(FrameQueue*);
     void display(FrameQueue*);
     void input();
 
@@ -29,6 +30,7 @@ private:
     WINDOW* w_commandHistory;
     WINDOW* w_stats;
     WINDOW* w_output;
+    WINDOW* w_log;
 
     bool updating;
 
@@ -40,4 +42,5 @@ private:
     void renderOutput();
     void renderHistory();
     void renderStats();
+    void renderLog();
 };

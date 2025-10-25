@@ -93,20 +93,13 @@ void Pawny::listen(FrameQueue *queue){
             if (debugFrames >= 12) {
                 return;
             };
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(20));
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(2000));
         };
     };
 };
 
-void Pawny::consume(FrameQueue *queue){
-     while(1){
-
-        if (queue->isEmpty()) {
-            continue;
-        }
-
-        canfd_frame frame = queue->pop();
-
+void Pawny::consume(canfd_frame frame){
+     
         if (this->broadcast_en && this->server->isConnected()) {
             this->broadcast(frame);
         }
@@ -115,7 +108,6 @@ void Pawny::consume(FrameQueue *queue){
             this->logger->write(frame);
         }
 
-    };
 }
 
 void Pawny::broadcast(canfd_frame frame) {

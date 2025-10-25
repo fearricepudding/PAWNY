@@ -43,14 +43,26 @@ void Interface::setupWindow(WINDOW* local_win, int height, int width, int starty
     wrefresh(local_win);
 }
 
+void Interface::consume(FrameQueue* queue) {
+    while(1){
+        if (queue->isEmpty()) {
+            continue;
+        }
+        canfd_frame frame = queue->pop();
+        this->pawny->consume(frame);
+    };
+}
+
 void Interface::display(FrameQueue* queue) {
     w_logo = newwin(6, 35, 0, 1);
-    w_stats = newwin(7, COLS-35, 0, 35);
-    w_commandHistory = newwin(5, COLS, 7, 0);
-    w_output = newwin((LINES - (12)), COLS, 12, 0);
+    w_stats = newwin(7, (COLS/3*2)-35, 0, 35);
+    w_log = newwin(0, (COLS/3), 0, (COLS/3*2));
+    w_output = newwin((LINES - (10)), (COLS/3)*2, 7, 0);
+    w_commandHistory = newwin(3, (COLS/3)*2, LINES-3, 0);
 
     refresh();
     this->renderLogo();
+    this->renderLog();
 
     while (1) {
         int bufferSize = queue->size();
@@ -81,11 +93,28 @@ void Interface::update() {
     this->updating = false;
 }
 
+void Interface::renderLog() {
+    box(w_log, 0, 0);
+    mvwprintw(w_log, 0, 2, " Log ");
+
+    int limit = LINES-2;
+    int count = 0;
+    std::list<std::string>::iterator it;
+    for (it = this->state.log.begin(); it != this->state.log.end(); ++it){
+        std::string value = "";
+        value = *it;
+        mvwprintw(w_log, limit-count, 1, "%s", value.c_str());
+        count++;
+    }
+
+    wrefresh(w_log);
+}
+
 void Interface::renderOutput() {
     wclear(w_output);
     box(w_output, 0, 0);
 
-    mvwprintw(w_output, 0, 2, "Output");
+    mvwprintw(w_output, 0, 2, " Output ");
 
     wrefresh(w_output);
 }
@@ -94,17 +123,18 @@ void Interface::renderHistory() {
     wclear(w_commandHistory);
     box(w_commandHistory, 0, 0);
 
-    mvwprintw(w_commandHistory, 0, 2, "Command");
-
     wattron(w_commandHistory, COLOR_PAIR(1));
-    mvwprintw(w_commandHistory, 1, 1, "Command: %s", this->state.command.c_str());
+    mvwprintw(w_commandHistory, 1, 2, ">");
     wattroff(w_commandHistory, COLOR_PAIR(1));
+    mvwprintw(w_commandHistory, 1, 4, "%s", this->state.command.c_str());
 
+    /*
     std::string lastCommand = "";
     if (this->state.commandHistory.size() > 0) {
         lastCommand = this->state.commandHistory.back();
     }
     mvwprintw(w_commandHistory, 3, 1, "> %s", lastCommand.c_str());
+    */
 
     wrefresh(w_commandHistory);
 }
@@ -113,7 +143,6 @@ void Interface::renderStats() {
     wclear(w_stats);
     box(w_stats, 0, 0);
 
-    mvwprintw(w_stats, 1, 1, "Wake up, Neo...");
     mvwprintw(w_stats, 2, 1, "Buffer size: %d frames (%ld bytes)", this->state.bufferSize, this->state.bufferSize*(sizeof(canfd_frame)));
 
     std::string broadcast = "Disabled";
@@ -156,6 +185,7 @@ void Interface::input() {
 
 void Interface::runCommand() {
     std::string cmd = this->state.command;
+    this->state.log.push_front("Running command '"+cmd+"'");
     this->state.command = "";
-    this->state.commandHistory.push(cmd);
+    this->renderLog();
 }

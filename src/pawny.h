@@ -30,7 +30,7 @@ public:
     void init();
 
      void listen(FrameQueue *);
-     void consume(FrameQueue *);
+     void consume(canfd_frame);
      void display(FrameQueue *);
      void input();
 
