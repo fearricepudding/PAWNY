@@ -94,15 +94,13 @@ void Interface::update() {
 }
 
 void Interface::renderLog() {
+    wclear(w_log);
     box(w_log, 0, 0);
     mvwprintw(w_log, 0, 2, " Log ");
 
     int limit = LINES-2;
     int count = 0;
-    std::list<std::string>::iterator it;
-    for (it = this->state.log.begin(); it != this->state.log.end(); ++it){
-        std::string value = "";
-        value = *it;
+    for (std::string value : this->state.log) {
         mvwprintw(w_log, limit-count, 1, "%s", value.c_str());
         count++;
     }
@@ -142,6 +140,12 @@ void Interface::renderHistory() {
 void Interface::renderStats() {
     wclear(w_stats);
     box(w_stats, 0, 0);
+
+    std::string version = "Pawny v0.2.1";
+    if (this->pawny->debug) {
+        version += " [Debug mode]";
+    }
+    mvwprintw(w_stats, 1, 1, "%s", version.c_str());
 
     mvwprintw(w_stats, 2, 1, "Buffer size: %d frames (%ld bytes)", this->state.bufferSize, this->state.bufferSize*(sizeof(canfd_frame)));
 
@@ -185,7 +189,8 @@ void Interface::input() {
 
 void Interface::runCommand() {
     std::string cmd = this->state.command;
-    this->state.log.push_front("Running command '"+cmd+"'");
+    this->state.log.push_front("> '"+cmd+"'");
+    this->state.log.push_front("Command not found");
     this->state.command = "";
     this->renderLog();
 }
