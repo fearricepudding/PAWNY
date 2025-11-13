@@ -11,11 +11,15 @@
 #include "server.h"
 #include "FrameQueue.h"
 #include "File.h"
+#include "Logger.h"
+
+using namespace fear;
 
 class Pawny{
 public:
 
-    Pawny(bool);
+    Pawny(bool, Logger*);
+    Logger *logger;
 
     int port;
     bool broadcast_en;
@@ -45,7 +49,7 @@ public:
      void enableFD();
      void disableFD();
 private: 
-    File* logger;
+    File* fileLog;
     Server *server;
     Candy *candy;
 };

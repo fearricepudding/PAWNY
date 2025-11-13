@@ -2,6 +2,7 @@
 #include "../candy/src/candy.h"
 #include "server.h"
 #include "File.h"
+#include "Logger.h"
 
 #include <linux/can.h>
 #include <iostream>
@@ -15,7 +16,10 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
-Pawny::Pawny(bool debug) {
+#include "./commands/raw.h"
+
+Pawny::Pawny(bool debug, Logger *logger) {
+    this->logger = logger;
     this->debug = debug;
     this->store = false;
     this->broadcast_en = false;
@@ -23,6 +27,7 @@ Pawny::Pawny(bool debug) {
     this->_drate = 2000000;
     this->_baud = 500000;
     this->_fd = false;
+
 };
 
 void Pawny::setDataRate(int drate) {
@@ -42,7 +47,7 @@ void Pawny::disableFD() {
 }
 
 void Pawny::init(){
-    //std::cout << "[*] Starting ECUPWN PAWNY" << std::endl;
+    this->logger->add("[*] Starting ECUPWN PAWNY");
 
     if (this->_fd) {
         this->candy = new Candy(this->debug, this->_baud, this->_drate);
@@ -53,7 +58,7 @@ void Pawny::init(){
     this->candy->setup();
     
     if(!this->candy->isConnected()){
-        //std::cout << "[*] CAN error, exiting" << std::endl;
+        this->logger->add("[*] CAN error, exiting");
         exit(1);
     };
 
@@ -63,7 +68,7 @@ void Pawny::init(){
 
     if (this->store) {
         this->storePath = storePath;
-        this->logger = new File(storePath);
+        this->fileLog = new File(storePath);
     };
 }
 
@@ -99,19 +104,17 @@ void Pawny::listen(FrameQueue *queue){
 };
 
 void Pawny::consume(canfd_frame frame){
-     
-        if (this->broadcast_en && this->server->isConnected()) {
-            this->broadcast(frame);
-        }
+    if (this->broadcast_en && this->server->isConnected()) {
+        this->broadcast(frame);
+    }
 
-        if (this->store) {
-            this->logger->write(frame);
-        }
-
+    if (this->store) {
+        this->fileLog->write(frame);
+    }
 }
 
 void Pawny::broadcast(canfd_frame frame) {
-    //std::cout << "[#] Got connection" << std::endl;
+    this->logger->add("[#] Got new broadcast connection");
     server->sendFrame(frame);
 };
 

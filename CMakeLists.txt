@@ -11,6 +11,12 @@ add_executable(PAWNY
     src/File.cpp
     src/Interface.cpp
     src/FrameQueue.cpp
+    src/Logger.cpp
+    src/CommandFactory.cpp
+
+    src/displays/raw.cpp
+    
+    src/commands/Send.cpp
 )
 
 find_package(Boost COMPONENTS thread filesystem system chrono program_options REQUIRED)

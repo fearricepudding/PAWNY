@@ -1,12 +1,20 @@
 #include "./Interface.h"
 #include "pawny.h"
 #include "FrameQueue.h"
+#include "Logger.h"
+
 #include <stdlib.h>
 #include <iostream>
 #include <queue>
 #include <list>
 #include <ncurses.h>
 #include <boost/thread.hpp>
+
+#include "./commands/raw.h"
+#include "Command.h"
+#include "Display.h"
+#include "CommandFactory.h"
+#include <sstream>
 
 Interface::Interface(Pawny* pawny) {
     this->pawny = pawny;
@@ -29,18 +37,16 @@ void Interface::setupInteractive() {
 
     // Setup colours
     init_pair (0, COLOR_WHITE, COLOR_BLACK);
-    init_pair(1, COLOR_RED, COLOR_BLACK);
-    init_pair(2, COLOR_WHITE, COLOR_BLACK);
+    init_pair(1, COLOR_CYAN, COLOR_BLACK);
+    init_pair(2, COLOR_RED, COLOR_BLACK);
     
     // setup default state values
     this->state.command = "";
     this->state.bufferSize = 0;
-}
 
-void Interface::setupWindow(WINDOW* local_win, int height, int width, int starty, int startx) {
-    local_win = newwin(height, width, starty, startx);
-    box(local_win, 0 , 0);
-    wrefresh(local_win);
+
+    this->commandFactory = new CommandFactory();
+    this->currentDisplay = commandFactory->getDisplay("placeholder");
 }
 
 void Interface::consume(FrameQueue* queue) {
@@ -49,7 +55,9 @@ void Interface::consume(FrameQueue* queue) {
             continue;
         }
         canfd_frame frame = queue->pop();
+        this->currentDisplay->consume(frame, this->pawny);
         this->pawny->consume(frame);
+        this->update();
     };
 }
 
@@ -63,13 +71,17 @@ void Interface::display(FrameQueue* queue) {
     refresh();
     this->renderLogo();
     this->renderLog();
+    this->renderHistory();
 
+    this->update();
+    /*
     while (1) {
         int bufferSize = queue->size();
         this->state.bufferSize = bufferSize;
         this->update();
-        boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
+        boost::this_thread::sleep_for(boost::chrono::milliseconds(500));
     }
+    */
 }
 
 void Interface::renderLogo() {
@@ -83,14 +95,11 @@ void Interface::renderLogo() {
 }
 
 void Interface::update() {
-    if (this->updating) {
-        return;
-    }
-    this->updating = true;
+    this->updating.lock();
     this->renderStats();
-    this->renderHistory();
     this->renderOutput();
-    this->updating = false;
+    this->renderLog();
+    this->updating.unlock();
 }
 
 void Interface::renderLog() {
@@ -98,10 +107,13 @@ void Interface::renderLog() {
     box(w_log, 0, 0);
     mvwprintw(w_log, 0, 2, " Log ");
 
+    std::list<Log> logs = this->pawny->logger->getLogs();
     int limit = LINES-2;
     int count = 0;
-    for (std::string value : this->state.log) {
-        mvwprintw(w_log, limit-count, 1, "%s", value.c_str());
+    for (Log log : logs) {
+        wattron(w_log, COLOR_PAIR(log.colorPair));
+        mvwprintw(w_log, limit-count, 1, "%s", log.message.c_str());
+        wattroff(w_log, COLOR_PAIR(log.colorPair));
         count++;
     }
 
@@ -114,6 +126,8 @@ void Interface::renderOutput() {
 
     mvwprintw(w_output, 0, 2, " Output ");
 
+    this->currentDisplay->display(w_output);
+
     wrefresh(w_output);
 }
 
@@ -125,14 +139,6 @@ void Interface::renderHistory() {
     mvwprintw(w_commandHistory, 1, 2, ">");
     wattroff(w_commandHistory, COLOR_PAIR(1));
     mvwprintw(w_commandHistory, 1, 4, "%s", this->state.command.c_str());
-
-    /*
-    std::string lastCommand = "";
-    if (this->state.commandHistory.size() > 0) {
-        lastCommand = this->state.commandHistory.back();
-    }
-    mvwprintw(w_commandHistory, 3, 1, "> %s", lastCommand.c_str());
-    */
 
     wrefresh(w_commandHistory);
 }
@@ -182,15 +188,45 @@ void Interface::input() {
                     this->state.command += ascii;
                 }
         }
-        this->update();
+        this->updating.lock();
+        this->renderHistory();
+        this->updating.unlock();
     }
 }
  
-
 void Interface::runCommand() {
     std::string cmd = this->state.command;
-    this->state.log.push_front("> '"+cmd+"'");
-    this->state.log.push_front("Command not found");
+    this->pawny->logger->add("[>] "+cmd, 1);
+    if (this->startsWith(&cmd, "show")) {
+        if (this->commandFactory->hasDisplay(cmd)) {
+            this->currentDisplay = this->commandFactory->getDisplay(cmd);
+        } else {
+            this->pawny->logger->add("[!] Display not found", 2);
+        }
+    } else {
+        if (this->commandFactory->hasCommand(cmd)) {
+            Command* toRun = this->commandFactory->getCommand(cmd);
+            toRun->run();
+        } else {
+            this->pawny->logger->add("[!] Command not found", 2);
+        }
+    }
     this->state.command = "";
+    this->updating.lock();
+    this->renderHistory();
     this->renderLog();
+    this->renderOutput();
+    this->updating.unlock();
+}
+
+bool Interface::startsWith(std::string* haystack , std::string needle) {
+    int needleSize = needle.size();
+    if (haystack->size() < needleSize) {
+        return false;
+    }
+    std::string haystackString = haystack->substr(0, needleSize);
+    if (haystackString == needle) {
+        return true;
+    }
+    return false;
 }

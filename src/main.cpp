@@ -43,8 +43,8 @@ int main(int argc, char** argv){
     if (vm.count("debug")) {
         debug = true;
     };
-
-    Pawny *i_pawny = new Pawny(debug);
+    Logger* logger = new Logger();
+    Pawny *i_pawny = new Pawny(debug, logger);
     Interface* interface = new Interface(i_pawny);
     
     if (vm.count("bitrate")) {
