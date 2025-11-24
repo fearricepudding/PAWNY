@@ -1,12 +1,13 @@
 #pragma once
 
-#include "../candy/src/candy.h"
+#include "candy.h"
 
 #include <linux/can.h>
 #include <queue>
 #include <mutex>
 #include <map>
 #include <list>
+#include <boost/thread.hpp>
 
 #include "server.h"
 #include "FrameQueue.h"
@@ -30,6 +31,8 @@ public:
     int _baud;
     bool _fd;
     std::string storePath;
+
+    boost::mutex updating;
 
     void init();
 

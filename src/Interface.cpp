@@ -10,7 +10,7 @@
 #include <ncurses.h>
 #include <boost/thread.hpp>
 
-#include "./commands/raw.h"
+#include "./displays/raw.h"
 #include "Command.h"
 #include "Display.h"
 #include "CommandFactory.h"
@@ -95,11 +95,11 @@ void Interface::renderLogo() {
 }
 
 void Interface::update() {
-    this->updating.lock();
+    this->pawny->updating.lock();
     this->renderStats();
     this->renderOutput();
     this->renderLog();
-    this->updating.unlock();
+    this->pawny->updating.unlock();
 }
 
 void Interface::renderLog() {
@@ -188,9 +188,9 @@ void Interface::input() {
                     this->state.command += ascii;
                 }
         }
-        this->updating.lock();
+        this->pawny->updating.lock();
         this->renderHistory();
-        this->updating.unlock();
+        this->pawny->updating.unlock();
     }
 }
  
@@ -212,11 +212,11 @@ void Interface::runCommand() {
         }
     }
     this->state.command = "";
-    this->updating.lock();
+    this->pawny->updating.lock();
     this->renderHistory();
     this->renderLog();
     this->renderOutput();
-    this->updating.unlock();
+    this->pawny->updating.unlock();
 }
 
 bool Interface::startsWith(std::string* haystack , std::string needle) {

@@ -1,5 +1,5 @@
 #include "pawny.h"
-#include "../candy/src/candy.h"
+#include "candy.h"
 #include "server.h"
 #include "File.h"
 #include "Logger.h"
@@ -16,7 +16,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
-#include "./commands/raw.h"
+#include "./displays/raw.h"
 
 Pawny::Pawny(bool debug, Logger *logger) {
     this->logger = logger;

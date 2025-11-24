@@ -40,8 +40,6 @@ private:
     WINDOW* w_output;
     WINDOW* w_log;
 
-    boost::mutex updating;
-
     void runCommand();
     void update();
     

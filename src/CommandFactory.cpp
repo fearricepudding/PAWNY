@@ -1,6 +1,6 @@
 #include "CommandFactory.h"
 #include "Command.h"
-#include "./commands/raw.h"
+#include "./displays/raw.h"
 
 using namespace fear::command;
 
