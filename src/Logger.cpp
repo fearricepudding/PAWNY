@@ -10,7 +10,16 @@ Logger::Logger() {
     this->logSize = 100;
 }
 
+Logger::Logger(bool raw) {
+    this->raw = raw;
+}
+
 void Logger::add(Log log) {
+    if (this->raw) {
+        std::string message = log.message;
+        std::cout << message << std::endl;
+        return;
+    }
     logs.push_front(log);
 }
 

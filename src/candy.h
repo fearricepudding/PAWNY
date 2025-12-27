@@ -2,15 +2,14 @@
 
 #include <string>
 #include <linux/can.h>
+#include "Logger.h"
+
+using namespace fear;
 
 class Candy {
 public: 
-    Candy();
-    Candy(int);
-    Candy(bool);
-    Candy(bool, int);
-    Candy(int, int);
-    Candy(bool, int, int);
+    Candy(bool, int, Logger*);
+    Candy(bool, int, int, Logger*);
     ~Candy();
     canfd_frame recieve();
     int send();
@@ -29,4 +28,5 @@ private:
     bool _fd;
     int _bitrate;
     int _datarate;
+    Logger* logger;
 };

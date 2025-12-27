@@ -12,20 +12,17 @@
 #include <sstream>
 
 #include "candy.h"
+#include "Logger.h"
 
-Candy::Candy() : Candy(false, 10400) {};
+using namespace fear;
 
-Candy::Candy(int bitrate) : Candy(false, bitrate) {};
 
-Candy::Candy(int bitrate, int datarate) : Candy(false, bitrate, datarate) {};
-
-Candy::Candy(bool debug) : Candy(debug, 10400) {};
-
-Candy::Candy(bool debug, int bitrate) {
+Candy::Candy(bool debug, int bitrate, Logger *logger) {
+    this->logger = logger;
     if (debug) {
-        //std::cout << "[DEBUG] Starting candy in DEBUG mode" << std::endl;
+        this->logger->add("[DEBUG] Starting candy in DEBUG mode");
     } else {
-        //std::cout << "[*] Starting candy" << std::endl;
+        this->logger->add("[*] Starting candy");
     };
     this->_debug = debug;
     this->error = "";
@@ -34,7 +31,7 @@ Candy::Candy(bool debug, int bitrate) {
     this->_fd = false;
 }
 
-Candy::Candy(bool debug, int bitrate, int datarate) : Candy(debug, bitrate) {
+Candy::Candy(bool debug, int bitrate, int datarate, Logger* logger) : Candy(debug, bitrate, logger) {
     this->_fd = true;
     this->_datarate = datarate;
 }
@@ -44,20 +41,20 @@ Candy::~Candy() {
 };
 
 void Candy::setup() {
-    //std::cout << "[*] Starting can link" << std::endl;
+    this->logger->add("[*] Starting can link");
     if (this->_debug) {
-        //std::cout << "[DEBUG] skipping setup" << std::endl;
+        this->logger->add("[DEBUG] skipping setup");
         this->_connected = true;
         return;
     };
     int status = this->setupCanLink();
     if(status != 0){
-        //std::cout << this->error << std::endl;
+        this->logger->add(this->error);
     };
 };
 
 void Candy::shutdown() {
-    //std::cout << "[*] Closing can link" << std::endl;
+    this->logger->add("[*] Closing can link");
     if (this->_debug) {
         return;
     };
@@ -84,12 +81,12 @@ int Candy::setupCanLink() {
      */
 
     std::stringstream setupCommand;
-    //std::cout << "[*] Setting up can0 link with bitrate " << this->_bitrate << std::endl;
+    this->logger->add("[*] Setting up can0 link with bitrate "+ std::to_string(this->_bitrate));
     setupCommand << "sudo ip link set can0 type can bitrate " << std::to_string(this->_bitrate);
     if (this->_fd) {
         setupCommand << " dbitrate " << this->_datarate << " fd on";
     };
-    //std::cout << "[%] " << setupCommand.str() << std::endl;
+    this->logger->add("[DEBUG] " + setupCommand.str());
     system(setupCommand.str().c_str());
     system("sudo ifconfig can0 up");
 

@@ -43,7 +43,13 @@ int main(int argc, char** argv){
     if (vm.count("debug")) {
         debug = true;
     };
-    Logger* logger = new Logger();
+
+    bool ui = false;
+    if (vm.count("interactive")) {
+        ui = true;
+    }
+
+    Logger* logger = new Logger(!ui);
     Pawny *i_pawny = new Pawny(debug, logger);
     Interface* interface = new Interface(i_pawny);
     
@@ -73,11 +79,7 @@ int main(int argc, char** argv){
         i_pawny->enableLogging(storePath);
     };
 
-    bool ui = false;
-    if (vm.count("interactive")) {
-        ui = true;
-    }
-
+    
     if (ui) {
         interface->setupInteractive();
     }

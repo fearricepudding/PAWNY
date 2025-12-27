@@ -3,6 +3,7 @@
 #include <list>
 #include <map>
 #include <string>
+#include <iostream>
 
 namespace fear{
 struct Log {
@@ -13,7 +14,7 @@ struct Log {
 class Logger {
 public:
     Logger();
-
+    Logger(bool);
     std::list<Log> getLogs();
     void add(Log);
     void add(std::string);
@@ -21,5 +22,6 @@ public:
 private:
     std::list<Log> logs;
     int logSize;
+    bool raw;
 };
 };

@@ -50,9 +50,9 @@ void Pawny::init(){
     this->logger->add("[*] Starting ECUPWN PAWNY");
 
     if (this->_fd) {
-        this->candy = new Candy(this->debug, this->_baud, this->_drate);
+        this->candy = new Candy(this->debug, this->_baud, this->_drate, this->logger);
     } else {
-        this->candy = new Candy(this->debug, this->_drate);
+        this->candy = new Candy(this->debug, this->_drate, this->logger);
     };
 
     this->candy->setup();
@@ -64,12 +64,15 @@ void Pawny::init(){
 
     if (this->broadcast_en) {
         this->server = new Server(this->port);
+        this->logger->add("[*] Broadcast enabled: "+this->port);
     }
 
     if (this->store) {
-        this->storePath = storePath;
         this->fileLog = new File(storePath);
+        this->logger->add("[*] Log file enabled: "+this->storePath);
     };
+
+    this->logger->add("[*] PAWNY ready");
 }
 
 void Pawny::enableLogging(std::string path) {
@@ -120,7 +123,8 @@ void Pawny::rawLogFrame(canfd_frame frame) {
         frameString << "{" << (void*)(frame.data[i]) << "}";
     }
     frameString << "]";
-    std::cout << frameString.str() << std::endl;
+    //std::cout << frameString.str() << std::endl;
+    this->logger->add("New frame: "+frameString.str());
 }
 
 void Pawny::rawConsume(FrameQueue *queue) {
