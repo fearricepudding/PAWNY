@@ -113,6 +113,27 @@ void Pawny::consume(canfd_frame frame){
     }
 }
 
+void Pawny::rawLogFrame(canfd_frame frame) {
+    std::stringstream frameString;
+    frameString << "0x" << std::hex << frame.can_id << "[";
+    for (int i = 0; i < 8; i++) {
+        frameString << "{" << (void*)(frame.data[i]) << "}";
+    }
+    frameString << "]";
+    std::cout << frameString.str() << std::endl;
+}
+
+void Pawny::rawConsume(FrameQueue *queue) {
+    while(1){
+        if (!queue->isEmpty()) {
+            canfd_frame frame = queue->pop();
+            Pawny::rawLogFrame(frame);
+            Pawny::consume(frame);
+        }
+        boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
+    }
+}
+
 void Pawny::broadcast(canfd_frame frame) {
     this->logger->add("[#] Got new broadcast connection");
     server->sendFrame(frame);

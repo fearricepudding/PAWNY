@@ -73,16 +73,28 @@ int main(int argc, char** argv){
         i_pawny->enableLogging(storePath);
     };
 
-    interface->setupInteractive();
+    bool ui = false;
+    if (vm.count("interactive")) {
+        ui = true;
+    }
+
+    if (ui) {
+        interface->setupInteractive();
+    }
     i_pawny->init();
 
     boost::thread_group threads;
     FrameQueue queue;
-
+    
     threads.add_thread(new boost::thread(&Pawny::listen, i_pawny, &queue));
-    threads.add_thread(new boost::thread(&Interface::consume, interface, &queue));
-    threads.add_thread(new boost::thread(&Interface::display, interface, &queue));
-    threads.add_thread(new boost::thread(&Interface::input, interface));
+
+    if (ui) {
+        threads.add_thread(new boost::thread(&Interface::consume, interface, &queue));
+        threads.add_thread(new boost::thread(&Interface::display, interface, &queue));
+        threads.add_thread(new boost::thread(&Interface::input, interface));
+    } else {
+        threads.add_thread(new boost::thread(&Pawny::rawConsume, i_pawny, &queue));
+    }
 
     threads.join_all();
 }

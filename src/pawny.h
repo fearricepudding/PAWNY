@@ -38,7 +38,8 @@ public:
 
      void listen(FrameQueue *);
      void consume(canfd_frame);
-     void display(FrameQueue *);
+     void rawConsume(FrameQueue *);
+     void rawLogFrame(canfd_frame);
      void input();
 
      void broadcast(canfd_frame);
