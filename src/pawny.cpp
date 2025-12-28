@@ -52,7 +52,7 @@ void Pawny::init(){
     if (this->_fd) {
         this->candy = new Candy(this->debug, this->_baud, this->_drate, this->logger);
     } else {
-        this->candy = new Candy(this->debug, this->_drate, this->logger);
+        this->candy = new Candy(this->debug, this->_baud, this->logger);
     };
 
     this->candy->setup();
